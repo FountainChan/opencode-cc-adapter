@@ -4,6 +4,10 @@ import type { CommandDefinition } from "./claude-code/command-loader/types.js";
 import { loadUserCommands, loadProjectCommands } from "./claude-code/command-loader/loader.js";
 import { syncCommandsToFile } from "./claude-code/command-loader/sync-to-file.js";
 import { loadUserSkills, loadProjectSkills } from "./claude-code/skill-loader/loader.js";
+import { loadUserAgents, loadProjectAgents } from "./claude-code/agent-loader/loader.js";
+import { discoverInstalledPlugins } from "./claude-code/plugin-loader/discovery.js";
+import { loadPluginCommands } from "./claude-code/plugin-loader/command-loader.js";
+import { loadPluginSkillsAsCommands } from "./claude-code/plugin-loader/skill-loader.js";
 
 export interface CcAdapterConfig {
   claude_code?: {
@@ -74,7 +78,7 @@ export default function ccAdapterPlugin(
   const projectDir = input.directory || process.cwd() || null;
   const config = loadConfig(projectDir);
 
-  // Load commands from Claude Code directory
+  // ── Commands ──
   const userCommands: Record<string, CommandDefinition> = {};
   const projectCommands: Record<string, CommandDefinition> = {};
 
@@ -83,57 +87,79 @@ export default function ccAdapterPlugin(
       const loaded = loadUserCommands();
       if (loaded) Object.assign(userCommands, loaded);
     } catch {
-      // User commands directory doesn't exist
+      // User commands dir doesn't exist
     }
-
     if (projectDir) {
       try {
         const loaded = loadProjectCommands(projectDir);
         if (loaded) Object.assign(projectCommands, loaded);
       } catch {
-        // Project commands directory doesn't exist
+        // Project commands dir doesn't exist
       }
     }
   }
 
-  // Merge: project commands override user commands
   const allCommands = { ...userCommands, ...projectCommands };
 
-  // Sync commands to opencode.json for / autocomplete
   if (Object.keys(userCommands).length > 0) {
-    const userConfigFile = `${configDir}/opencode.json`;
-    syncCommandsToFile(userConfigFile, userCommands, "cc-adapter-user");
+    syncCommandsToFile(`${configDir}/opencode.json`, userCommands, "cc-adapter-user");
   }
-
   if (Object.keys(projectCommands).length > 0 && projectDir) {
-    const projectConfigFile = `${projectDir}/.opencode/opencode.json`;
-    syncCommandsToFile(projectConfigFile, projectCommands, "cc-adapter-project");
+    syncCommandsToFile(`${projectDir}/.opencode/opencode.json`, projectCommands, "cc-adapter-project");
   }
 
-  // Pre-load skill templates for injection
+  // ── Skills ──
   const skillTemplates: string[] = [];
   if (config.claude_code?.skills !== false) {
     try {
       const skills = loadUserSkills();
       if (skills) {
-        for (const skill of Object.values(skills)) {
-          if (skill.template) skillTemplates.push(skill.template);
+        for (const s of Object.values(skills)) {
+          if (s.template) skillTemplates.push(s.template);
         }
       }
-    } catch {
-      // skill loading failed
-    }
+    } catch { /* skip */ }
     if (projectDir) {
       try {
         const skills = loadProjectSkills(projectDir);
         if (skills) {
-          for (const skill of Object.values(skills)) {
-            if (skill.template) skillTemplates.push(skill.template);
+          for (const s of Object.values(skills)) {
+            if (s.template) skillTemplates.push(s.template);
           }
         }
-      } catch {
-        // skill loading failed
+      } catch { /* skip */ }
+    }
+  }
+
+  // ── Experimental: Plugin Loader ──
+  // Enable by setting "claude_code.plugins": true in opencode.json
+  // Requires Claude Code plugins installed in .claude/plugins/ or ~/.claude/plugins/
+  let pluginCommands: Record<string, CommandDefinition> = {};
+  if (config.claude_code?.plugins === true) {
+    try {
+      const plugins = discoverInstalledPlugins();
+      if (plugins && plugins.length > 0) {
+        pluginCommands = loadPluginCommands(plugins);
+        // Merge plugin commands into allCommands
+        Object.assign(allCommands, pluginCommands);
       }
+    } catch (e) {
+      // Plugin loading failed — this is experimental, don't crash
+      console.error("[cc-adapter-v2] Plugin loader error (experimental):", e);
+    }
+  }
+
+  // ── Experimental: Agent Loader ──
+  // Enable by setting "claude_code.agents": true in opencode.json
+  // Loads agent definitions from .claude/agents/ and ~/.claude/agents/
+  if (config.claude_code?.agents === true) {
+    try {
+      loadUserAgents();
+    } catch { /* skip */ }
+    if (projectDir) {
+      try {
+        loadProjectAgents(projectDir);
+      } catch { /* skip */ }
     }
   }
 
@@ -144,7 +170,6 @@ export default function ccAdapterPlugin(
     },
 
     "experimental.chat.system.transform": async (_input, output) => {
-      // Inject skill templates into system prompt
       for (const template of skillTemplates) {
         (output.system || []).push(
           `<skill_definition>\n${template}\n</skill_definition>`
@@ -154,5 +179,4 @@ export default function ccAdapterPlugin(
   };
 }
 
-// Re-export types for consumers
 export type { CommandDefinition } from "./claude-code/command-loader/types.js";
