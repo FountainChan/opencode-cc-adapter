@@ -1,6 +1,6 @@
 {
   "name": "cc-adapter-v2",
-  "version": "2.0.0-dev",
+  "version": "2.0.0",
   "type": "module",
   "description": "[v2] Bridge Claude Code ecosystem to OpenCode — loads commands, skills, MCP servers, agents from Claude Code conventions",
   "main": "dist/index.js",
