@@ -1,3 +1,7 @@
+[🇨🇳 中文](README.md) | [🇬🇧 English](README.en.md)
+
+---
+
 # 🚀 cc-adapter-v2
 
 **Bridge Claude Code ecosystem to OpenCode.**  
