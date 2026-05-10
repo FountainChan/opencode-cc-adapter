@@ -3,6 +3,9 @@
 **Bridge Claude Code ecosystem to OpenCode.**  
 把 Claude Code 的命令、技能、MCP 服务器、Agent、插件桥接到 OpenCode。
 
+[![Release](https://img.shields.io/github/v/release/FountainChan/opencode-cc-adapter?sort=semver)](https://github.com/FountainChan/opencode-cc-adapter/releases)
+[![License](https://img.shields.io/badge/license-SUL-blue)](./LICENSE.md)
+
 > **⚠️ 基于 oh-my-openagent 修改**  
 > 本作品基于 [oh-my-openagent](https://github.com/oh-my-openagent/oh-my-openagent) 的 Claude Code 兼容层提取而成，  
 > 原始代码采用 [Sustainable Use License v1.0](./LICENSE.md)。
@@ -23,8 +26,24 @@
 
 ## 📥 安装
 
+### 方法一：从 GitHub Release 安装（推荐 🏆）
+
 ```bash
-# 从本地目录安装
+# 用 tag 安装（自动从 GitHub 下载）
+npm install FountainChan/opencode-cc-adapter#v2.0.0
+```
+
+### 方法二：从 tgz 包安装
+
+到 [GitHub Releases](https://github.com/FountainChan/opencode-cc-adapter/releases) 下载 `cc-adapter-v2-2.0.0.tgz`：
+
+```bash
+npm install ./cc-adapter-v2-2.0.0.tgz
+```
+
+### 方法三：本地开发安装
+
+```bash
 npm install /path/to/cc-adapter-v2
 ```
 
