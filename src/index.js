@@ -102,7 +102,6 @@ async function loadCommandsFromDir(commandsDir) {
 // ─── Superpowers Bootstrap ─────────────────────────────────────────
 
 function getSuperpowersBootstrap(configDir) {
-  // Scan multiple possible skill locations
   const homeDir = os.homedir();
   const searchDirs = [
     path.join(configDir, 'skills', 'superpowers'),
@@ -137,12 +136,54 @@ Use OpenCode's native \`skill\` tool to list and load skills.`;
   return `<EXTREMELY_IMPORTANT>
 You have superpowers.
 
-**IMPORTANT: The using-superpowers skill content is included below. It is ALREADY LOADED - you are currently following it. Do NOT use the skill tool to load "using-superpowers" again - that would be redundant.**
+**IMPORTANT: The using-superpowers skill content is included below. It is ALREADY LOADED - you are currently doing so. Do NOT use the skill tool to load "using-superpowers" again - that would be redundant.**
 
 ${content}
 
 ${toolMapping}
 </EXTREMELY_IMPORTANT>`;
+}
+
+// ─── Sync commands to a specific opencode.json ─────────────────────
+// Merges commands into the "command" field, tagging them so stale entries
+// can be cleaned up on next load.
+
+function syncCommandsToFile(configFilePath, commands, sourceTag) {
+  const cmdCount = Object.keys(commands).length;
+  if (cmdCount === 0) return;
+
+  try {
+    let parsed = {};
+    try {
+      const raw = fs.readFileSync(configFilePath, 'utf-8');
+      parsed = JSON.parse(raw);
+    } catch {
+      // File doesn't exist or is invalid — start fresh
+    }
+
+    const existing = parsed.command || {};
+
+    // Remove stale entries from this source
+    for (const key of Object.keys(existing)) {
+      if (existing[key]?.__cc_source === sourceTag) {
+        delete existing[key];
+      }
+    }
+
+    // Add fresh commands
+    for (const [name, def] of Object.entries(commands)) {
+      existing[name] = {
+        ...def,
+        __cc_source: sourceTag,
+      };
+    }
+
+    parsed.command = existing;
+    fs.writeFileSync(configFilePath, JSON.stringify(parsed, null, 2), 'utf-8');
+    console.log(`[cc-adapter] Synced ${cmdCount} commands (${sourceTag}) to ${configFilePath}`);
+  } catch (e) {
+    console.error(`[cc-adapter] Failed to sync commands (${sourceTag}):`, e.message);
+  }
 }
 
 // ─── Main Plugin Export ────────────────────────────────────────────
@@ -152,9 +193,9 @@ export default async function ccAdapterPlugin({ directory }) {
   const envConfigDir = normalizePath(process.env.OPENCODE_CONFIG_DIR, homeDir);
   const configDir = envConfigDir || path.join(homeDir, '.config/opencode');
 
-  // ── Load .claude/commands/ ──
+  // ── Load commands from both locations ──
   const userCommandsDir = path.join(homeDir, '.claude', 'commands');
-  const projectCommandsDir = path.join(directory, '.claude', 'commands');
+  const projectCommandsDir = path.join(directory || '', '.claude', 'commands');
 
   const [userCommands, projectCommands] = await Promise.all([
     loadCommandsFromDir(userCommandsDir),
@@ -163,14 +204,34 @@ export default async function ccAdapterPlugin({ directory }) {
 
   const allCommands = { ...userCommands, ...projectCommands };
 
-  const cmdCount = Object.keys(allCommands).length;
-  console.log(`[cc-adapter] Loaded ${cmdCount} commands from .claude/commands/`);
+  // ── Sync to config files for Desktop UI autocomplete ──
+  //
+  // Layer 1: User-level commands → global opencode.json (always available)
+  //   These are global by nature (in ~/.claude/commands/), safe to persist.
+  //
+  // Layer 2: Project-level commands → local .opencode/opencode.json
+  //   These are scoped to the current project and won't leak to other projects.
+  //   opencode merges local config over global, so project commands take precedence.
+
+  syncCommandsToFile(
+    path.join(configDir, 'opencode.json'),
+    userCommands,
+    'cc-adapter-user',
+  );
+
+  if (directory) {
+    syncCommandsToFile(
+      path.join(directory, '.opencode', 'opencode.json'),
+      projectCommands,
+      'cc-adapter-project',
+    );
+  }
 
   // ── Return hooks ──
   return {
     name: 'cc-adapter',
 
-    // Register .claude/commands/ as native OpenCode commands
+    // Inject all commands into runtime config (for LLM system prompt injection)
     config: async (inputConfig) => {
       const existing = inputConfig.command || {};
       inputConfig.command = { ...existing, ...allCommands };
@@ -180,7 +241,7 @@ export default async function ccAdapterPlugin({ directory }) {
     'experimental.chat.system.transform': async (_input, output) => {
       const bootstrap = getSuperpowersBootstrap(configDir);
       if (bootstrap) {
-        (output.system ||= []).push(bootstrap);
+        (output.system || []).push(bootstrap);
       }
     },
   };
