@@ -2,7 +2,7 @@
   "name": "cc-adapter-v2",
   "version": "2.0.0",
   "type": "module",
-  "description": "[v2] Bridge Claude Code ecosystem to OpenCode — loads commands, skills, MCP servers, agents from Claude Code conventions",
+  "description": "Lightweight Claude Code → OpenCode bridge. Extracted from oh-my-openagent — drops the heavy agent orchestration, keeps the ecosystem compatibility: commands, skills, MCP, agents, plugins.",
   "main": "dist/index.js",
   "exports": {
     ".": {

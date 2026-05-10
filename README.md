@@ -6,9 +6,13 @@
 [![Release](https://img.shields.io/github/v/release/FountainChan/opencode-cc-adapter?sort=semver)](https://github.com/FountainChan/opencode-cc-adapter/releases)
 [![License](https://img.shields.io/badge/license-SUL-blue)](./LICENSE.md)
 
+> **💡 为什么有这个项目？**  
+> [oh-my-openagent](https://github.com/oh-my-openagent/oh-my-openagent)（OmO）实现了完整的 Claude Code 兼容层，但它也捆绑了大量功能——11 个内置 Agent、团队协作、后台任务、tmux 集成……  
+> 对于只想在 OpenCode 里用上 `.claude/commands/`、技能和 MCP 的用户来说，**太重了**。  
+> cc-adapter-v2 就是 OmO 的 Claude Code 兼容层的**轻量提取版**——去掉 Agent 编排、去掉团队功能，只保留桥接核心。
+
 > **⚠️ 基于 oh-my-openagent 修改**  
-> 本作品基于 [oh-my-openagent](https://github.com/oh-my-openagent/oh-my-openagent) 的 Claude Code 兼容层提取而成，  
-> 原始代码采用 [Sustainable Use License v1.0](./LICENSE.md)。
+> 本作品基于 oh-my-openagent 的 Claude Code 兼容层提取而成，原始代码采用 [Sustainable Use License v1.0](./LICENSE.md)。
 
 ---
 
