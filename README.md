@@ -23,11 +23,25 @@
 
 ## 📦 安装
 
-### 方式一：本地路径安装（推荐）
+> ⚠️ **关键**：OpenCode 从 `~/.cache/opencode/` 加载插件，不是 `~/.config/opencode/`。
+
+### 方式一：本地路径安装（推荐，开发用）
+
+编辑 `~/.cache/opencode/package.json`，添加依赖：
+
+```json
+{
+  "dependencies": {
+    "cc-adapter": "file:///path/to/opencode-cc-adapter"
+  }
+}
+```
+
+然后安装：
 
 ```bash
-cd ~/.config/opencode
-npm install /path/to/opencode-cc-adapter
+cd ~/.cache/opencode
+npm install
 ```
 
 > 💡 这会在 `node_modules/` 下创建符号链接指向本地目录。
@@ -36,7 +50,7 @@ npm install /path/to/opencode-cc-adapter
 ### 方式二：GitHub 仓库安装
 
 ```bash
-cd ~/.config/opencode
+cd ~/.cache/opencode
 npm install FountainChan/opencode-cc-adapter
 ```
 
