@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - run: npm pack
+        # Creates cc-adapter-v2-2.0.0.tgz — 用户可下载后 npm install 使用
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            cc-adapter-v2-*.tgz
+            dist/index.js
+          generate_release_notes: true
