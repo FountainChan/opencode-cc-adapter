@@ -1,0 +1,16 @@
+{
+  "name": "cc-adapter",
+  "version": "1.0.0",
+  "description": "Bridge Claude Code ecosystem to OpenCode — loads .claude/commands/ as native commands, injects superpowers skill bootstrap",
+  "main": "src/index.js",
+  "exports": {
+    ".": {
+      "import": "./src/index.js"
+    }
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": ">=1.0.0"
+  },
+  "keywords": ["opencode", "plugin", "claude-code", "adapter", "bridge", "commands", "superpowers", "skills"],
+  "license": "MIT"
+}
