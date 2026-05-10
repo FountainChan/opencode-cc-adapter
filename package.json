@@ -1,19 +1,44 @@
 {
   "name": "cc-adapter",
-  "version": "1.0.0",
+  "version": "2.0.0-dev",
   "type": "module",
-  "description": "Bridge Claude Code ecosystem to OpenCode — loads .claude/commands/ as native commands, injects superpowers skill bootstrap",
-  "main": "src/index.js",
+  "description": "Bridge Claude Code ecosystem to OpenCode — loads commands, skills, MCP servers, agents from Claude Code conventions",
+  "main": "dist/index.js",
   "exports": {
     ".": {
-      "import": "./src/index.js",
-      "require": "./src/index.js",
-      "default": "./src/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
-  "peerDependencies": {
-    "@opencode-ai/plugin": ">=1.0.0"
+  "files": [
+    "dist/",
+    "src/",
+    "scripts/",
+    "LICENSE.md",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node scripts/build.js",
+    "prepublishOnly": "npm run build",
+    "clean": "rm -rf dist"
   },
-  "keywords": ["opencode", "plugin", "claude-code", "adapter", "bridge", "commands", "superpowers", "skills"],
-  "license": "MIT"
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "@opencode-ai/plugin": "^1.4.0",
+    "@opencode-ai/sdk": "^1.4.0",
+    "js-yaml": "^4.1.1",
+    "jsonc-parser": "^3.3.1",
+    "picomatch": "^4.0.4",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0",
+    "vitest": "^3.0.0"
+  },
+  "keywords": ["opencode", "plugin", "claude-code", "adapter", "bridge", "commands", "skills", "mcp"],
+  "license": "SEE LICENSE IN LICENSE.md"
 }
