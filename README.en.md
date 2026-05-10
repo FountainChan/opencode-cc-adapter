@@ -109,7 +109,7 @@ First, install a plugin via Claude Code:
 /plugin marketplace add thedotmack/claude-mem
 ```
 
-Then enable in your OpenCode config file ([see above](#%E2%9A%99%EF%B8%8F-configuration)):
+Then enable in `~/.config/opencode/opencode.json` (user-level) or `<project>/.opencode/opencode.json` (project-level):
 
 ```json
 {
@@ -138,7 +138,7 @@ Check `docs/tracking/plugin-loader-testing.md` for known limitations and roadmap
 
 ## 🤖 Enabling Agent Loader (Experimental)
 
-Add to your OpenCode config file ([see above](#%E2%9A%99%EF%B8%8F-configuration)):
+Add to `~/.config/opencode/opencode.json` (user-level) or `<project>/.opencode/opencode.json` (project-level):
 
 ```json
 {
