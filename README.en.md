@@ -87,12 +87,14 @@ Toggle modules via OpenCode config files:
 }
 ```
 
-Config priority: **Project-level > User-level**
+Config file locations:
 
-| Level | File |
-|-------|------|
-| 🏢 Project | `.opencode/opencode.json` |
-| 👤 User | `~/.config/opencode/opencode.json` |
+| Level | File | Scope |
+|-------|------|-------|
+| 👤 **User** (recommended) | `~/.config/opencode/opencode.json` | Global — applies to all projects |
+| 🏢 **Project** | `<project>/.opencode/opencode.json` | Local — overrides user config for this project |
+
+Priority: **Project-level > User-level**
 
 ---
 
@@ -107,10 +109,21 @@ First, install a plugin via Claude Code:
 /plugin marketplace add thedotmack/claude-mem
 ```
 
-Then enable in config:
+Then enable in your OpenCode config file ([see above](#%E2%9A%99%EF%B8%8F-configuration)):
 
 ```json
 {
+  "claude_code": {
+    "plugins": true
+  }
+}
+```
+
+For example, edit `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "plugin": ["cc-adapter-v2"],
   "claude_code": {
     "plugins": true
   }
@@ -125,8 +138,21 @@ Check `docs/tracking/plugin-loader-testing.md` for known limitations and roadmap
 
 ## 🤖 Enabling Agent Loader (Experimental)
 
+Add to your OpenCode config file ([see above](#%E2%9A%99%EF%B8%8F-configuration)):
+
 ```json
 {
+  "claude_code": {
+    "agents": true
+  }
+}
+```
+
+For example, edit `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "plugin": ["cc-adapter-v2"],
   "claude_code": {
     "agents": true
   }
