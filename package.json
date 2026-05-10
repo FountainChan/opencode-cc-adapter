@@ -1,6 +1,7 @@
 {
   "name": "cc-adapter",
   "version": "1.0.0",
+  "type": "module",
   "description": "Bridge Claude Code ecosystem to OpenCode — loads .claude/commands/ as native commands, injects superpowers skill bootstrap",
   "main": "src/index.js",
   "exports": {
