@@ -27,15 +27,33 @@
 
 ### 方式一：本地路径安装（推荐，开发用）
 
-编辑 `~/.cache/opencode/package.json`，添加依赖：
+```bash
+cd ~/.cache/opencode
+npm install /path/to/opencode-cc-adapter
+```
+
+> 💡 这会创建符号链接，修改源码后无需重新安装，改动实时生效。
+
+### 方式二：GitHub 仓库安装
+
+```bash
+cd ~/.cache/opencode
+npm install FountainChan/opencode-cc-adapter
+```
+
+### 方式三：直接文件路径（备选）
+
+如果 npm 方式有问题，可直接在 `opencode.json` 的 `plugin` 字段引用 JS 文件路径：
 
 ```json
 {
-  "dependencies": {
-    "cc-adapter": "file:///path/to/opencode-cc-adapter"
-  }
+  "plugin": [
+    "file:///path/to/opencode-cc-adapter/src/index.js"
+  ]
 }
 ```
+
+> ⚠️ 缺点是插件名会显示为完整路径（较丑），但功能完全一致。
 
 然后安装：
 
@@ -79,15 +97,35 @@ opencode-cc-adapter/
 
 ## 🔧 工作原理
 
-| Hook | 功能 |
-|------|------|
-| `config` | 扫描 `.claude/commands/*.md` → 注入到 `opencode.json` 的 `command` 字段 |
+| Hook / 机制 | 功能 |
+|-------------|------|
+| 启动扫描 | 读取 `~/.claude/commands/` 和 `<project>/.claude/commands/` 中的 `.md` 命令文件 |
+| 写配置文件 | 用户级命令 → `~/.config/opencode/opencode.json`（全局）；项目级命令 → `<project>/.opencode/opencode.json`（本地，不跨项目污染） |
+| `config` hook | 注入命令到运行时 `inputConfig.command`（供 LLM 系统提示词使用） |
 | `experimental.chat.system.transform` | 检测 Superpowers 技能 → 注入 bootstrap 系统提示词 |
+
+> **为什么需要写配置文件？** OpenCode CLI 的 `/` 命令自动补全从**磁盘文件**读取，插件 `config` hook 仅修改运行时内存，不足以让命令出现在自动补全中。详见 [踩坑记录](https://github.com/FountainChan/opencode-cc-adapter)。
+
+## 🐛 排错指南
+
+### 插件已加载，但 `/` 没有 `.claude/commands/` 的命令
+
+1. **检查插件是否正确安装**：确认 `~/.cache/opencode/node_modules/cc-adapter` 存在且为符号链接
+2. **检查命令文件路径**：项目的 `.claude/commands/` 目录必须存在且包含 `.md` 文件
+3. **检查配置文件**：重启后查看 `~/.config/opencode/opencode.json` 的 `command` 字段是否包含 cc-adapter 注入的命令
+4. **查看日志**：在 opencode Desktop 按 `Ctrl+Shift+I` 打开 DevTools Console，搜索 `[cc-adapter]`
 
 ## 📋 前置依赖
 
 - [OpenCode](https://opencode.ai) >= 1.0.0
 - `@opencode-ai/plugin` >= 1.0.0（通常随 OpenCode 安装）
+
+## 🔍 查询关键字
+
+如需在知识库中快速找到相关经验，使用以下关键字：
+
+- `opencode 插件开发`、`cc-adapter`、`opencode 命令注册`、`config hook 限制`
+- `opencode 插件加载路径`、`syncCommandsToFile`、`process.cwd() 回退`
 
 ## 📜 License
 
