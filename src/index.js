@@ -193,16 +193,37 @@ export default async function ccAdapterPlugin({ directory }) {
   const envConfigDir = normalizePath(process.env.OPENCODE_CONFIG_DIR, homeDir);
   const configDir = envConfigDir || path.join(homeDir, '.config/opencode');
 
+  // ── Debug: log key paths ──
+  const cwd = process.cwd();
+  console.log(`[cc-adapter] directory param: ${directory}`);
+  console.log(`[cc-adapter] process.cwd(): ${cwd}`);
+
+  // ── Determine project directory ──
+  // - directory param from PluginInput
+  // - fallback to process.cwd()
+  // - fallback to null
+  const projectDir = directory || cwd || null;
+  console.log(`[cc-adapter] resolved projectDir: ${projectDir}`);
+
   // ── Load commands from both locations ──
   const userCommandsDir = path.join(homeDir, '.claude', 'commands');
-  const projectCommandsDir = path.join(directory || '', '.claude', 'commands');
+  const projectCommandsDir = projectDir
+    ? path.join(projectDir, '.claude', 'commands')
+    : null;
 
-  const [userCommands, projectCommands] = await Promise.all([
-    loadCommandsFromDir(userCommandsDir),
-    loadCommandsFromDir(projectCommandsDir),
-  ]);
+  const scanDirs = [loadCommandsFromDir(userCommandsDir)];
+  if (projectCommandsDir) {
+    scanDirs.push(loadCommandsFromDir(projectCommandsDir));
+  }
 
+  const results = await Promise.all(scanDirs);
+  const userCommands = results[0] || {};
+  const projectCommands = results[1] || {};
   const allCommands = { ...userCommands, ...projectCommands };
+
+  console.log(`[cc-adapter] userCommands: ${Object.keys(userCommands).length} found`);
+  console.log(`[cc-adapter] projectCommands: ${Object.keys(projectCommands).length} found`);
+  console.log(`[cc-adapter] allCommands: ${Object.keys(allCommands).length} total`);
 
   // ── Sync to config files for Desktop UI autocomplete ──
   //
@@ -219,9 +240,9 @@ export default async function ccAdapterPlugin({ directory }) {
     'cc-adapter-user',
   );
 
-  if (directory) {
+  if (projectDir) {
     syncCommandsToFile(
-      path.join(directory, '.opencode', 'opencode.json'),
+      path.join(projectDir, '.opencode', 'opencode.json'),
       projectCommands,
       'cc-adapter-project',
     );
